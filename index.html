@@ -35,17 +35,8 @@
             background: #071d33;
         }
 
-        .sidebar-header h2 {
-            color: #d4af37;
-            font-size: 20px;
-            font-weight: 800;
-        }
-        
-        .sidebar-header p {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 5px;
-        }
+        .sidebar-header h2 { color: #d4af37; font-size: 20px; font-weight: 800; }
+        .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 5px; }
 
         .email-list {
             flex: 1;
@@ -68,17 +59,8 @@
             border: 1px solid #334155;
         }
 
-        .recruiter-item:hover {
-            border-color: #d4af37;
-            background: #0f172a;
-        }
-
-        .recruiter-email {
-            font-size: 12px;
-            color: #cbd5e1;
-            word-break: break-all;
-            margin-right: 10px;
-        }
+        .recruiter-item:hover { border-color: #d4af37; background: #0f172a; }
+        .recruiter-email { font-size: 12px; color: #cbd5e1; word-break: break-all; margin-right: 10px; }
 
         .btn-add-email {
             background: #10b981;
@@ -135,6 +117,47 @@
         
         textarea { resize: vertical; height: 280px; }
 
+        /* File List Styles */
+        .file-list {
+            margin-top: 10px;
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px dashed #334155;
+            display: none;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            border: 1px solid #334155;
+        }
+
+        .file-item:last-child { margin-bottom: 0; }
+        .file-name { color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+        .file-size { color: #64748b; font-size: 10px; margin-left: 5px; }
+        
+        .btn-remove-file {
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
         .btn-submit {
             width: 100%;
             padding: 16px;
@@ -182,9 +205,7 @@
             <h2>🎯 Recruiter List</h2>
             <p>Click "Add" to include in your send list</p>
         </div>
-        <div class="email-list" id="emailList">
-            <!-- Emails will be injected here via JavaScript -->
-        </div>
+        <div class="email-list" id="emailList"></div>
     </aside>
 
     <!-- Main Application Form -->
@@ -209,7 +230,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Target Emails (Click "Add" on the left or type manually)</label>
+                    <label>Target Emails</label>
                     <input type="text" id="targetEmails" placeholder="hr@company1.com, jobs@company2.com" required>
                 </div>
 
@@ -218,7 +239,6 @@
                     <input type="text" id="emailSubject" value="Application for Remote Software Engineer - Gesner Deslandes" required>
                 </div>
 
-                <!-- PRE-WRITTEN COVER LETTER -->
                 <div class="form-group">
                     <label>Cover Letter</label>
                     <textarea id="emailBody" required>Dear Hiring Manager,
@@ -242,10 +262,12 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Upload Your CV & Certificates (Select Multiple)</label>
-                    <!-- ADDED 'multiple' attribute here to allow multiple uploads -->
-                    <input type="file" id="cvFile" accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" multiple required>
-                    <div class="hint" style="color:#f0d369;">Tip: Hold "Ctrl" or "Cmd" to select your CV and all your certificates at once.</div>
+                    <label>Upload CV & Certificates</label>
+                    <input type="file" id="cvFile" accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" multiple>
+                    <div class="hint" style="color:#f0d369;">💡 You can click this multiple times to add more files. They will stack below.</div>
+                    
+                    <!-- Visible list of uploaded files -->
+                    <div id="fileList" class="file-list"></div>
                 </div>
 
                 <button type="submit" class="btn-submit" id="submitBtn">🚀 Send Applications</button>
@@ -256,26 +278,13 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
     <script>
         // 1. Populate the Recruiter Sidebar
         const recruiters = [
-            "recruiting@techcorp.com",
-            "hr@innovativedevs.io",
-            "talent@globalsoft.com",
-            "jobs@remoteworks.tech",
-            "careers@futurecode.org",
-            "hiring@cloudscale.net",
-            "team@startupincubator.com",
-            "hr@digitalfrontiers.com",
-            "recruitment@aitechhub.com",
-            "jobs@webwizards.io",
-            "talent@nexgenapps.com",
-            "careers@datadrive.com",
-            "hiring@codecrafters.net",
-            "hr@softwaredynamics.com",
-            "recruiting@nextleveltech.org",
-            "jobs@devsforgood.com",
-            "team@agileminds.io",
-            "careers@bytebuilders.com",
-            "hr@techpioneers.com",
-            "recruiting@globaldevs.net"
+            "recruiting@techcorp.com", "hr@innovativedevs.io", "talent@globalsoft.com", 
+            "jobs@remoteworks.tech", "careers@futurecode.org", "hiring@cloudscale.net", 
+            "team@startupincubator.com", "hr@digitalfrontiers.com", "recruitment@aitechhub.com", 
+            "jobs@webwizards.io", "talent@nexgenapps.com", "careers@datadrive.com", 
+            "hiring@codecrafters.net", "hr@softwaredynamics.com", "recruiting@nextleveltech.org", 
+            "jobs@devsforgood.com", "team@agileminds.io", "careers@bytebuilders.com", 
+            "hr@techpioneers.com", "recruiting@globaldevs.net"
         ];
 
         const emailListDiv = document.getElementById('emailList');
@@ -302,7 +311,67 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             }
         }
 
-        // 2. Handle Form Submission and Email Sending (MULTIPLE FILES)
+        // 2. File Accumulation Logic
+        const fileInput = document.getElementById('cvFile');
+        const fileListDiv = document.getElementById('fileList');
+        let allFiles = []; // Master list of all files added
+
+        fileInput.addEventListener('change', function(e) {
+            const newFiles = Array.from(e.target.files);
+            
+            newFiles.forEach(file => {
+                // Check if file is already in the list (by name and size)
+                const isDuplicate = allFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!isDuplicate) {
+                    allFiles.push(file);
+                }
+            });
+
+            // Reset input value so selecting the same file again triggers the event
+            fileInput.value = '';
+            renderFileList();
+        });
+
+        function renderFileList() {
+            fileListDiv.innerHTML = '';
+            
+            if (allFiles.length === 0) {
+                fileListDiv.style.display = 'none';
+                return;
+            }
+            
+            fileListDiv.style.display = 'block';
+
+            allFiles.forEach((file, index) => {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; overflow:hidden;">
+                        <span class="file-name">📄 ${file.name}</span>
+                        <span class="file-size">(${sizeMB} MB)</span>
+                    </div>
+                    <button type="button" class="btn-remove-file" onclick="removeFile(${index})">✕</button>
+                `;
+                fileListDiv.appendChild(item);
+            });
+            
+            // Warning if total size exceeds 20MB
+            const totalSize = allFiles.reduce((acc, f) => acc + f.size, 0);
+            if (totalSize > 20 * 1024 * 1024) {
+                const warning = document.createElement('div');
+                warning.style.cssText = "color: #ff4757; font-size: 12px; font-weight: bold; margin-top: 8px;";
+                warning.textContent = "⚠️ Warning: Total file size is over 20MB. Emails might fail to send.";
+                fileListDiv.appendChild(warning);
+            }
+        }
+
+        window.removeFile = function(index) {
+            allFiles.splice(index, 1);
+            renderFileList();
+        };
+
+        // 3. Handle Form Submission
         document.getElementById('applyForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
 
@@ -314,11 +383,8 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             const targetEmailsStr = document.getElementById('targetEmails').value;
             const subject = document.getElementById('emailSubject').value;
             const body = document.getElementById('emailBody').value;
-            
-            const fileInput = document.getElementById('cvFile');
-            const files = fileInput.files;
 
-            if (files.length === 0) return alert("Please upload your CV and Certificates.");
+            if (allFiles.length === 0) return alert("Please upload your CV and Certificates.");
             
             const emails = targetEmailsStr.split(',').map(email => email.trim()).filter(email => email !== '');
             if (emails.length === 0) return alert("Please enter valid email addresses.");
@@ -328,13 +394,12 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             statusBox.className = 'message-box';
             statusBox.style.display = 'none';
 
-            // Array to hold all attachments
             let attachments = [];
             let filesProcessed = 0;
 
-            // Loop through all selected files
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
+            // Loop through our master allFiles array
+            for (let i = 0; i < allFiles.length; i++) {
+                const file = allFiles[i];
                 const reader = new FileReader();
                 
                 reader.onload = function(event) {
@@ -346,8 +411,7 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                     
                     filesProcessed++;
                     
-                    // Once all files are read, send the email
-                    if (filesProcessed === files.length) {
+                    if (filesProcessed === allFiles.length) {
                         btn.textContent = '⏳ Sending Emails...';
                         sendEmail(emails, senderEmail, senderPassword, subject, body, attachments, btn, statusBox);
                     }
@@ -363,7 +427,7 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             }
         });
 
-        // Function to actually send the email via SmtpJS
+        // 4. Send Email
         function sendEmail(emails, senderEmail, senderPassword, subject, body, attachments, btn, statusBox) {
             Email.send({
                 Host: "smtp.gmail.com",
@@ -373,17 +437,20 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 From: senderEmail,
                 Subject: subject,
                 Body: body.replace(/\n/g, "<br>"),
-                Attachments: attachments // Pass the array of all files here
+                Attachments: attachments
             }).then(
                 message => {
-                    statusBox.textContent = "✅ Success! CV & " + attachments.length + " attachments sent to " + emails.length + " recruiters.";
+                    statusBox.textContent = "✅ Success! Your CV & " + attachments.length + " certificates were sent to " + emails.length + " recruiters.";
                     statusBox.className = 'message-box success';
                     btn.disabled = false;
                     btn.textContent = '🚀 Send Applications';
-                    document.getElementById('cvFile').value = '';
+                    
+                    // Clear files after successful send
+                    allFiles = [];
+                    renderFileList();
                 }
             ).catch(err => {
-                statusBox.textContent = "❌ Error: " + err + " (Check your App Password or File Size)";
+                statusBox.textContent = "❌ Error: " + err + " (Check your App Password or Total File Size)";
                 statusBox.className = 'message-box error';
                 btn.disabled = false;
                 btn.textContent = '🚀 Send Applications';
