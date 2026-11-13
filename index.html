@@ -191,7 +191,7 @@
     <main class="main-content">
         <div class="form-container">
             <h1>JARVIS Auto-Apply</h1>
-            <p class="subtitle">Send your CV and Cover Letter instantly.</p>
+            <p class="subtitle">Send your CV, Certificates, and Cover Letter instantly.</p>
 
             <div id="statusMessage" class="message-box"></div>
 
@@ -227,7 +227,7 @@ I am writing to express my strong interest in the Software Engineer position. As
 
 One of my proudest projects is the "G Jarvis Communication Portal." I developed this platform to connect my students for educational purposes. Because online safety is paramount, I built a secure, protected environment into the application—creating a "shield" in the code that allows students to interact safely without being exposed to the wider internet.
 
-I am eager to bring my problem-solving skills and passion for secure software development to your team. Please find my CV attached for your review.
+I am eager to bring my problem-solving skills and passion for secure software development to your team. Please find my CV and my certifications attached for your review.
 
 Thank you for your time and consideration.
 
@@ -242,8 +242,10 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Upload Your CV (PDF or Word)</label>
-                    <input type="file" id="cvFile" accept=".pdf, .doc, .docx" required>
+                    <label>Upload Your CV & Certificates (Select Multiple)</label>
+                    <!-- ADDED 'multiple' attribute here to allow multiple uploads -->
+                    <input type="file" id="cvFile" accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" multiple required>
+                    <div class="hint" style="color:#f0d369;">Tip: Hold "Ctrl" or "Cmd" to select your CV and all your certificates at once.</div>
                 </div>
 
                 <button type="submit" class="btn-submit" id="submitBtn">🚀 Send Applications</button>
@@ -289,20 +291,18 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             emailListDiv.appendChild(item);
         });
 
-        // Function to add email to the input field
         function addEmail(email) {
             let currentEmails = targetEmailsInput.value.trim();
             if (currentEmails === '') {
                 targetEmailsInput.value = email;
             } else {
-                // Check if email already exists to prevent duplicates
                 if (!currentEmails.includes(email)) {
                     targetEmailsInput.value = currentEmails + ', ' + email;
                 }
             }
         }
 
-        // 2. Handle Form Submission and Email Sending
+        // 2. Handle Form Submission and Email Sending (MULTIPLE FILES)
         document.getElementById('applyForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
 
@@ -314,55 +314,81 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             const targetEmailsStr = document.getElementById('targetEmails').value;
             const subject = document.getElementById('emailSubject').value;
             const body = document.getElementById('emailBody').value;
+            
             const fileInput = document.getElementById('cvFile');
+            const files = fileInput.files;
 
-            if (fileInput.files.length === 0) return alert("Please upload a CV.");
-            const file = fileInput.files[0];
-
+            if (files.length === 0) return alert("Please upload your CV and Certificates.");
+            
             const emails = targetEmailsStr.split(',').map(email => email.trim()).filter(email => email !== '');
-
             if (emails.length === 0) return alert("Please enter valid email addresses.");
 
             btn.disabled = true;
-            btn.textContent = '⏳ Sending Emails...';
+            btn.textContent = '⏳ Processing Files...';
             statusBox.className = 'message-box';
             statusBox.style.display = 'none';
 
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function() {
-                const base64Data = reader.result.split(',')[1];
+            // Array to hold all attachments
+            let attachments = [];
+            let filesProcessed = 0;
 
-                Email.send({
-                    Host: "smtp.gmail.com",
-                    Username: senderEmail,
-                    Password: senderPassword,
-                    To: emails.join(','), 
-                    From: senderEmail,
-                    Subject: subject,
-                    Body: body.replace(/\n/g, "<br>"),
-                    Attachments: [
-                        {
-                            name: file.name,
-                            data: base64Data
-                        }
-                    ]
-                }).then(
-                    message => {
-                        statusBox.textContent = "✅ Success! Applications sent to: " + emails.length + " recruiters.";
-                        statusBox.className = 'message-box success';
-                        btn.disabled = false;
-                        btn.textContent = '🚀 Send Applications';
-                        document.getElementById('cvFile').value = '';
+            // Loop through all selected files
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const base64Data = event.target.result.split(',')[1];
+                    attachments.push({
+                        name: file.name,
+                        data: base64Data
+                    });
+                    
+                    filesProcessed++;
+                    
+                    // Once all files are read, send the email
+                    if (filesProcessed === files.length) {
+                        btn.textContent = '⏳ Sending Emails...';
+                        sendEmail(emails, senderEmail, senderPassword, subject, body, attachments, btn, statusBox);
                     }
-                ).catch(err => {
-                    statusBox.textContent = "❌ Error: " + err + " (Check your App Password)";
-                    statusBox.className = 'message-box error';
+                };
+                
+                reader.onerror = function() {
+                    alert("Error reading file: " + file.name);
                     btn.disabled = false;
                     btn.textContent = '🚀 Send Applications';
-                });
-            };
+                };
+                
+                reader.readAsDataURL(file);
+            }
         });
+
+        // Function to actually send the email via SmtpJS
+        function sendEmail(emails, senderEmail, senderPassword, subject, body, attachments, btn, statusBox) {
+            Email.send({
+                Host: "smtp.gmail.com",
+                Username: senderEmail,
+                Password: senderPassword,
+                To: emails.join(','), 
+                From: senderEmail,
+                Subject: subject,
+                Body: body.replace(/\n/g, "<br>"),
+                Attachments: attachments // Pass the array of all files here
+            }).then(
+                message => {
+                    statusBox.textContent = "✅ Success! CV & " + attachments.length + " attachments sent to " + emails.length + " recruiters.";
+                    statusBox.className = 'message-box success';
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Send Applications';
+                    document.getElementById('cvFile').value = '';
+                }
+            ).catch(err => {
+                statusBox.textContent = "❌ Error: " + err + " (Check your App Password or File Size)";
+                statusBox.className = 'message-box error';
+                btn.disabled = false;
+                btn.textContent = '🚀 Send Applications';
+            });
+        }
     </script>
 </body>
 </html>
