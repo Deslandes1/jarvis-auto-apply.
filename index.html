@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS Auto-Apply</title>
+    <!-- Load SmtpJS library for sending emails -->
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #0b2a4a, #1e293b);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #0f172a;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #d4af37;
+        }
+        h1 { color: #d4af37; text-align: center; margin-bottom: 10px; font-size: 28px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0; font-size: 14px; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; height: 120px; }
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f0d369, #d4af37);
+            color: #0b2a4a;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
+        .btn-submit:disabled { opacity: 0.5; cursor: wait; transform: none; }
+        
+        .message-box {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .message-box.success { background: rgba(74, 255, 122, 0.2); color: #4aff7a; border: 1px solid #4aff7a; display: block; }
+        .message-box.error { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; display: block; }
+        .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>JARVIS Auto-Apply</h1>
+        <p class="subtitle">Upload your CV and send it to multiple recruiters instantly.</p>
+
+        <div id="statusMessage" class="message-box"></div>
+
+        <form id="applyForm">
+            <div class="form-group">
+                <label>Your Email Address (Gmail)</label>
+                <input type="email" id="senderEmail" placeholder="youremail@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Your Gmail App Password</label>
+                <input type="password" id="senderPassword" placeholder="16-character App Password" required>
+                <div class="hint">Do NOT use your normal Gmail password. Search "App Passwords" in your Google Account security settings to get one.</div>
+            </div>
+
+            <div class="form-group">
+                <label>Recruiter Emails (Separate with commas)</label>
+                <input type="text" id="targetEmails" placeholder="hr@company1.com, jobs@company2.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email Subject</label>
+                <input type="text" id="emailSubject" value="Application for Remote Software Engineer - Gesner Deslandes" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email Message</label>
+                <textarea id="emailBody" required>Dear Hiring Manager,
+
+Please find attached my CV for your consideration. I am very interested in the remote software engineering position.
+
+Best regards,
+Gesner Deslandes</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Your CV (PDF or Word)</label>
+                <input type="file" id="cvFile" accept=".pdf, .doc, .docx" required>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">🚀 Send Applications</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('applyForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent page reload
+
+            const btn = document.getElementById('submitBtn');
+            const statusBox = document.getElementById('statusMessage');
+            
+            // Get values
+            const senderEmail = document.getElementById('senderEmail').value.trim();
+            const senderPassword = document.getElementById('senderPassword').value.trim();
+            const targetEmailsStr = document.getElementById('targetEmails').value;
+            const subject = document.getElementById('emailSubject').value;
+            const body = document.getElementById('emailBody').value;
+            const fileInput = document.getElementById('cvFile');
+
+            if (fileInput.files.length === 0) return alert("Please upload a CV.");
+            const file = fileInput.files[0];
+
+            // Split and clean emails
+            const emails = targetEmailsStr.split(',').map(email => email.trim()).filter(email => email !== '');
+
+            if (emails.length === 0) return alert("Please enter valid email addresses.");
+
+            // Change UI state
+            btn.disabled = true;
+            btn.textContent = '⏳ Sending Emails...';
+            statusBox.className = 'message-box';
+            statusBox.style.display = 'none';
+
+            // Convert File to Base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function() {
+                // SmtpJS requires the base64 string without the prefix (e.g., data:application/pdf;base64,)
+                const base64Data = reader.result.split(',')[1];
+
+                // Send email using SmtpJS
+                Email.send({
+                    Host: "smtp.gmail.com",
+                    Username: senderEmail,
+                    Password: senderPassword,
+                    To: emails.join(','), // SmtpJS allows sending to multiple emails comma separated
+                    From: senderEmail,
+                    Subject: subject,
+                    Body: body.replace(/\n/g, "<br>"), // Convert newlines to HTML breaks
+                    Attachments: [
+                        {
+                            name: file.name,
+                            data: base64Data
+                        }
+                    ]
+                }).then(
+                    message => {
+                        // Success
+                        statusBox.textContent = "✅ Success! Applications sent to: " + emails.join(', ');
+                        statusBox.className = 'message-box success';
+                        btn.disabled = false;
+                        btn.textContent = '🚀 Send Applications';
+                        
+                        // Optional: Clear file and emails after sending
+                        document.getElementById('cvFile').value = '';
+                        document.getElementById('targetEmails').value = '';
+                    }
+                ).catch(err => {
+                    // Error
+                    statusBox.textContent = "❌ Error: " + err;
+                    statusBox.className = 'message-box error';
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Send Applications';
+                });
+            };
+        });
+    </script>
+</body>
+</html>
