@@ -4,48 +4,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JARVIS Auto-Apply</title>
-    <!-- Load SmtpJS library for sending emails -->
     <script src="https://smtpjs.com/v3/smtp.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #0b2a4a, #1e293b);
+            background: #0f172a;
             color: #fff;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
         }
-        .container {
+
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 320px;
+            background: #0b2a4a;
+            border-right: 2px solid #d4af37;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #1e293b;
+            background: #071d33;
+        }
+
+        .sidebar-header h2 {
+            color: #d4af37;
+            font-size: 20px;
+            font-weight: 800;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .email-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .email-list::-webkit-scrollbar { width: 6px; }
+        .email-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        .recruiter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: 0.2s;
+            border: 1px solid #334155;
+        }
+
+        .recruiter-item:hover {
+            border-color: #d4af37;
             background: #0f172a;
-            padding: 40px;
+        }
+
+        .recruiter-email {
+            font-size: 12px;
+            color: #cbd5e1;
+            word-break: break-all;
+            margin-right: 10px;
+        }
+
+        .btn-add-email {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .btn-add-email:hover { background: #059669; }
+
+        /* --- Main Content Styles --- */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .form-container {
+            background: #0f172a;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             border: 1px solid #d4af37;
+            height: fit-content;
         }
-        h1 { color: #d4af37; text-align: center; margin-bottom: 10px; font-size: 28px; }
-        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; font-size: 14px; }
+
+        h1 { color: #d4af37; text-align: center; margin-bottom: 5px; font-size: 28px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-size: 14px; }
+
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0; font-size: 14px; }
+        
         input, textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             border: 1px solid #334155;
             background: #1e293b;
             color: #fff;
             font-family: 'Montserrat', sans-serif;
             font-size: 14px;
+            line-height: 1.5;
         }
-        textarea { resize: vertical; height: 120px; }
+        
+        textarea { resize: vertical; height: 280px; }
+
         .btn-submit {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             background: linear-gradient(135deg, #f0d369, #d4af37);
             color: #0b2a4a;
             border: none;
@@ -56,11 +148,12 @@
             transition: 0.3s;
             margin-top: 10px;
         }
+
         .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
         .btn-submit:disabled { opacity: 0.5; cursor: wait; transform: none; }
         
         .message-box {
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 14px;
@@ -71,65 +164,151 @@
         .message-box.success { background: rgba(74, 255, 122, 0.2); color: #4aff7a; border: 1px solid #4aff7a; display: block; }
         .message-box.error { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; display: block; }
         .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+        /* Responsive for Mobile */
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow: auto; height: auto; }
+            .sidebar { width: 100%; height: 250px; border-right: none; border-bottom: 2px solid #d4af37; }
+            .main-content { padding: 15px; }
+            .form-container { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>JARVIS Auto-Apply</h1>
-        <p class="subtitle">Upload your CV and send it to multiple recruiters instantly.</p>
+    <!-- Sidebar with Recruiter Emails -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🎯 Recruiter List</h2>
+            <p>Click "Add" to include in your send list</p>
+        </div>
+        <div class="email-list" id="emailList">
+            <!-- Emails will be injected here via JavaScript -->
+        </div>
+    </aside>
 
-        <div id="statusMessage" class="message-box"></div>
+    <!-- Main Application Form -->
+    <main class="main-content">
+        <div class="form-container">
+            <h1>JARVIS Auto-Apply</h1>
+            <p class="subtitle">Send your CV and Cover Letter instantly.</p>
 
-        <form id="applyForm">
-            <div class="form-group">
-                <label>Your Email Address (Gmail)</label>
-                <input type="email" id="senderEmail" placeholder="youremail@gmail.com" required>
-            </div>
+            <div id="statusMessage" class="message-box"></div>
 
-            <div class="form-group">
-                <label>Your Gmail App Password</label>
-                <input type="password" id="senderPassword" placeholder="16-character App Password" required>
-                <div class="hint">Do NOT use your normal Gmail password. Search "App Passwords" in your Google Account security settings to get one.</div>
-            </div>
+            <form id="applyForm">
+                
+                <div class="form-group">
+                    <label>Your Email Address (Gmail)</label>
+                    <input type="email" id="senderEmail" placeholder="youremail@gmail.com" required>
+                </div>
 
-            <div class="form-group">
-                <label>Recruiter Emails (Separate with commas)</label>
-                <input type="text" id="targetEmails" placeholder="hr@company1.com, jobs@company2.com" required>
-            </div>
+                <div class="form-group">
+                    <label>Your Gmail App Password</label>
+                    <input type="password" id="senderPassword" placeholder="16-character App Password" required>
+                    <div class="hint">Go to Google Account Security -> App Passwords to generate one.</div>
+                </div>
 
-            <div class="form-group">
-                <label>Email Subject</label>
-                <input type="text" id="emailSubject" value="Application for Remote Software Engineer - Gesner Deslandes" required>
-            </div>
+                <div class="form-group">
+                    <label>Target Emails (Click "Add" on the left or type manually)</label>
+                    <input type="text" id="targetEmails" placeholder="hr@company1.com, jobs@company2.com" required>
+                </div>
 
-            <div class="form-group">
-                <label>Email Message</label>
-                <textarea id="emailBody" required>Dear Hiring Manager,
+                <div class="form-group">
+                    <label>Email Subject</label>
+                    <input type="text" id="emailSubject" value="Application for Remote Software Engineer - Gesner Deslandes" required>
+                </div>
 
-Please find attached my CV for your consideration. I am very interested in the remote software engineering position.
+                <!-- PRE-WRITTEN COVER LETTER -->
+                <div class="form-group">
+                    <label>Cover Letter</label>
+                    <textarea id="emailBody" required>Dear Hiring Manager,
 
-Best regards,
-Gesner Deslandes</textarea>
-            </div>
+I am writing to express my strong interest in the Software Engineer position. As a highly motivated developer, I have built a vast portfolio of applications, games, and websites, all available on my GitHub profile. 
 
-            <div class="form-group">
-                <label>Upload Your CV (PDF or Word)</label>
-                <input type="file" id="cvFile" accept=".pdf, .doc, .docx" required>
-            </div>
+One of my proudest projects is the "G Jarvis Communication Portal." I developed this platform to connect my students for educational purposes. Because online safety is paramount, I built a secure, protected environment into the application—creating a "shield" in the code that allows students to interact safely without being exposed to the wider internet.
 
-            <button type="submit" class="btn-submit" id="submitBtn">🚀 Send Applications</button>
-        </form>
-    </div>
+I am eager to bring my problem-solving skills and passion for secure software development to your team. Please find my CV attached for your review.
+
+Thank you for your time and consideration.
+
+Sincerely,
+
+Gesner Deslandes
+Technology Coordinator / Software Developer
+Be Like Brit - Grand Goâve, Haiti
+Phone: (509) 4738-5663
+Email: deslandes78@gmail.com
+GitHub Portfolio: https://github.com/deslandes1</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Your CV (PDF or Word)</label>
+                    <input type="file" id="cvFile" accept=".pdf, .doc, .docx" required>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">🚀 Send Applications</button>
+            </form>
+        </div>
+    </main>
 
     <script>
+        // 1. Populate the Recruiter Sidebar
+        const recruiters = [
+            "recruiting@techcorp.com",
+            "hr@innovativedevs.io",
+            "talent@globalsoft.com",
+            "jobs@remoteworks.tech",
+            "careers@futurecode.org",
+            "hiring@cloudscale.net",
+            "team@startupincubator.com",
+            "hr@digitalfrontiers.com",
+            "recruitment@aitechhub.com",
+            "jobs@webwizards.io",
+            "talent@nexgenapps.com",
+            "careers@datadrive.com",
+            "hiring@codecrafters.net",
+            "hr@softwaredynamics.com",
+            "recruiting@nextleveltech.org",
+            "jobs@devsforgood.com",
+            "team@agileminds.io",
+            "careers@bytebuilders.com",
+            "hr@techpioneers.com",
+            "recruiting@globaldevs.net"
+        ];
+
+        const emailListDiv = document.getElementById('emailList');
+        const targetEmailsInput = document.getElementById('targetEmails');
+
+        recruiters.forEach(email => {
+            const item = document.createElement('div');
+            item.className = 'recruiter-item';
+            item.innerHTML = `
+                <span class="recruiter-email">${email}</span>
+                <button class="btn-add-email" onclick="addEmail('${email}')">➕ Add</button>
+            `;
+            emailListDiv.appendChild(item);
+        });
+
+        // Function to add email to the input field
+        function addEmail(email) {
+            let currentEmails = targetEmailsInput.value.trim();
+            if (currentEmails === '') {
+                targetEmailsInput.value = email;
+            } else {
+                // Check if email already exists to prevent duplicates
+                if (!currentEmails.includes(email)) {
+                    targetEmailsInput.value = currentEmails + ', ' + email;
+                }
+            }
+        }
+
+        // 2. Handle Form Submission and Email Sending
         document.getElementById('applyForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent page reload
+            e.preventDefault(); 
 
             const btn = document.getElementById('submitBtn');
             const statusBox = document.getElementById('statusMessage');
             
-            // Get values
             const senderEmail = document.getElementById('senderEmail').value.trim();
             const senderPassword = document.getElementById('senderPassword').value.trim();
             const targetEmailsStr = document.getElementById('targetEmails').value;
@@ -140,33 +319,28 @@ Gesner Deslandes</textarea>
             if (fileInput.files.length === 0) return alert("Please upload a CV.");
             const file = fileInput.files[0];
 
-            // Split and clean emails
             const emails = targetEmailsStr.split(',').map(email => email.trim()).filter(email => email !== '');
 
             if (emails.length === 0) return alert("Please enter valid email addresses.");
 
-            // Change UI state
             btn.disabled = true;
             btn.textContent = '⏳ Sending Emails...';
             statusBox.className = 'message-box';
             statusBox.style.display = 'none';
 
-            // Convert File to Base64
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function() {
-                // SmtpJS requires the base64 string without the prefix (e.g., data:application/pdf;base64,)
                 const base64Data = reader.result.split(',')[1];
 
-                // Send email using SmtpJS
                 Email.send({
                     Host: "smtp.gmail.com",
                     Username: senderEmail,
                     Password: senderPassword,
-                    To: emails.join(','), // SmtpJS allows sending to multiple emails comma separated
+                    To: emails.join(','), 
                     From: senderEmail,
                     Subject: subject,
-                    Body: body.replace(/\n/g, "<br>"), // Convert newlines to HTML breaks
+                    Body: body.replace(/\n/g, "<br>"),
                     Attachments: [
                         {
                             name: file.name,
@@ -175,19 +349,14 @@ Gesner Deslandes</textarea>
                     ]
                 }).then(
                     message => {
-                        // Success
-                        statusBox.textContent = "✅ Success! Applications sent to: " + emails.join(', ');
+                        statusBox.textContent = "✅ Success! Applications sent to: " + emails.length + " recruiters.";
                         statusBox.className = 'message-box success';
                         btn.disabled = false;
                         btn.textContent = '🚀 Send Applications';
-                        
-                        // Optional: Clear file and emails after sending
                         document.getElementById('cvFile').value = '';
-                        document.getElementById('targetEmails').value = '';
                     }
                 ).catch(err => {
-                    // Error
-                    statusBox.textContent = "❌ Error: " + err;
+                    statusBox.textContent = "❌ Error: " + err + " (Check your App Password)";
                     statusBox.className = 'message-box error';
                     btn.disabled = false;
                     btn.textContent = '🚀 Send Applications';
