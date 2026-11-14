@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JARVIS Auto-Apply</title>
-    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        emailjs.init("ZzsUznWBXZhGFlFhQ");
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+
         body {
             font-family: 'Montserrat', sans-serif;
             background: #0f172a;
@@ -18,9 +21,8 @@
             overflow: hidden;
         }
 
-        /* --- Sidebar Styles --- */
         .sidebar {
-            width: 320px;
+            width: 340px;
             background: #0b2a4a;
             border-right: 2px solid #d4af37;
             display: flex;
@@ -29,55 +31,75 @@
         }
 
         .sidebar-header {
-            padding: 20px;
+            padding: 18px 20px;
             text-align: center;
             border-bottom: 1px solid #1e293b;
             background: #071d33;
         }
-
         .sidebar-header h2 { color: #d4af37; font-size: 20px; font-weight: 800; }
         .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 5px; }
 
-        .email-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
+        .view-counter {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 10px;
+            background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(13,122,140,0.12));
+            border-bottom: 1px solid #1e293b;
+            font-size: 13px; color: #e2e8f0; font-weight: 600;
         }
+        .view-counter .eye { font-size: 20px; }
+        .view-counter .count { color: #d4af37; font-weight: 800; font-size: 16px; }
 
+        .user-plan-card {
+            background: #071d33;
+            padding: 14px;
+            border-bottom: 1px solid #1e293b;
+            text-align: center;
+        }
+        .user-plan-card .plan-header { font-size: 13px; color: #d4af37; font-weight: 700; margin-bottom: 8px; }
+        .user-plan-card .plan-name { font-size: 16px; font-weight: 800; }
+        .user-plan-card .plan-details { font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+        .user-plan-card .plan-usage { font-size: 12px; margin-top: 6px; font-weight: 600; }
+        .user-plan-card .btn-change-plan {
+            background: linear-gradient(135deg, #f0d369, #d4af37);
+            color: #0b2a4a; border: none; padding: 8px 12px; border-radius: 6px;
+            font-size: 12px; font-weight: 800; cursor: pointer; width: 100%;
+            margin-top: 10px; transition: 0.2s;
+        }
+        .user-plan-card .btn-change-plan:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(212,175,55,0.4); }
+
+        .email-list { flex: 1; overflow-y: auto; padding: 15px; }
         .email-list::-webkit-scrollbar { width: 6px; }
         .email-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
-        .recruiter-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1e293b;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: 0.2s;
-            border: 1px solid #334155;
+        .list-section-title {
+            font-size: 11px; color: #64748b; text-transform: uppercase;
+            letter-spacing: 1px; margin: 10px 0 8px; font-weight: 700;
         }
 
+        .recruiter-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; padding: 12px; border-radius: 8px;
+            margin-bottom: 10px; transition: 0.2s; border: 1px solid #334155;
+        }
         .recruiter-item:hover { border-color: #d4af37; background: #0f172a; }
         .recruiter-email { font-size: 12px; color: #cbd5e1; word-break: break-all; margin-right: 10px; }
 
         .btn-add-email {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: 0.2s;
+            background: #10b981; color: white; border: none;
+            padding: 6px 10px; border-radius: 6px; font-size: 12px;
+            font-weight: 700; cursor: pointer; flex-shrink: 0; transition: 0.2s;
         }
-
         .btn-add-email:hover { background: #059669; }
 
-        /* --- Main Content Styles --- */
+        .help-btn-sidebar {
+            display: block; width: 100%; padding: 12px;
+            background: transparent; color: #d4af37;
+            border: 1px solid #d4af37; border-radius: 6px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            margin-top: 10px; transition: 0.2s; font-family: 'Montserrat', sans-serif;
+        }
+        .help-btn-sidebar:hover { background: rgba(212,175,55,0.1); }
+
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -98,11 +120,25 @@
         }
 
         h1 { color: #d4af37; text-align: center; margin-bottom: 5px; font-size: 28px; }
-        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 25px; font-size: 14px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-bottom: 20px; font-size: 14px; }
+
+        .info-banner {
+            background: linear-gradient(135deg, rgba(13,122,140,0.15), rgba(11,42,74,0.25));
+            border: 1px solid #0d7a8c;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .info-banner .icon { font-size: 26px; flex-shrink: 0; }
+        .info-banner .text { font-size: 13px; line-height: 1.6; color: #cbd5e1; }
+        .info-banner .text strong { color: #d4af37; }
 
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #e2e8f0; font-size: 14px; }
-        
+
         input, textarea {
             width: 100%;
             padding: 14px;
@@ -114,10 +150,9 @@
             font-size: 14px;
             line-height: 1.5;
         }
-        
+
         textarea { resize: vertical; height: 250px; }
 
-        /* File List Styles */
         .file-list {
             margin-top: 10px;
             background: #1e293b;
@@ -126,36 +161,18 @@
             border: 1px dashed #334155;
             display: none;
         }
-
         .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f172a;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            border: 1px solid #334155;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #0f172a; padding: 8px 12px; border-radius: 6px;
+            margin-bottom: 5px; font-size: 12px; border: 1px solid #334155;
         }
-
         .file-item:last-child { margin-bottom: 0; }
         .file-name { color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
         .file-size { color: #64748b; font-size: 10px; margin-left: 5px; }
-        
         .btn-remove-file {
-            background: #ff4757;
-            color: white;
-            border: none;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            background: #ff4757; color: white; border: none;
+            width: 22px; height: 22px; border-radius: 50%; font-size: 12px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
 
         .btn-submit {
@@ -171,10 +188,9 @@
             transition: 0.3s;
             margin-top: 10px;
         }
-
         .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
         .btn-submit:disabled { opacity: 0.5; cursor: wait; transform: none; }
-        
+
         .message-box {
             padding: 14px;
             border-radius: 8px;
@@ -186,12 +202,64 @@
         }
         .message-box.success { background: rgba(74, 255, 122, 0.2); color: #4aff7a; border: 1px solid #4aff7a; display: block; }
         .message-box.error { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; display: block; }
+
         .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
 
-        /* Responsive for Mobile */
+        .plan-modal-backdrop, .help-modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px;
+        }
+        .plan-modal-backdrop.show, .help-modal-backdrop.show { display: flex; }
+
+        .plan-modal, .help-modal {
+            background: #0f172a; border: 2px solid #d4af37; border-radius: 12px;
+            max-width: 640px; width: 100%; padding: 26px; color: #fff;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .plan-modal { max-width: 440px; }
+        .plan-modal h3 { color: #d4af37; margin-bottom: 8px; font-size: 20px; }
+        .help-modal h2 { color: #d4af37; margin-bottom: 8px; font-size: 22px; }
+        .plan-modal p.plan-intro, .help-modal .help-sub {
+            font-size: 12px; color: #94a3b8; margin-bottom: 14px; line-height: 1.5;
+        }
+
+        .plan-option {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px; margin-bottom: 10px; border: 1px solid #334155;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .plan-option:hover { border-color: #d4af37; background: #1e293b; }
+        .plan-option.active { border-color: #4aff7a; background: rgba(74,255,122,0.1); }
+        .plan-option .plan-title { font-weight: 700; font-size: 15px; color: #fff; }
+        .plan-option .plan-price { font-size: 13px; color: #94a3b8; font-weight: 700; }
+        .plan-option .plan-desc { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
+
+        .help-step {
+            display: flex; gap: 14px; margin-bottom: 16px;
+            background: #1e293b; padding: 14px; border-radius: 8px;
+            border-left: 4px solid #d4af37;
+        }
+        .help-step .num {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #d4af37; color: #0b2a4a;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; flex-shrink: 0;
+        }
+        .help-step .content { flex: 1; font-size: 13px; line-height: 1.6; color: #e2e8f0; }
+        .help-step .content strong { color: #d4af37; }
+
+        .plan-modal-close, .help-modal-close {
+            width: 100%; padding: 13px; margin-top: 10px; border: none;
+            border-radius: 8px; background: #334155; color: #fff;
+            font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif;
+        }
+        .help-modal-close { background: linear-gradient(135deg, #f0d369, #d4af37); color: #0b2a4a; }
+
         @media (max-width: 900px) {
             body { flex-direction: column; overflow: auto; height: auto; }
-            .sidebar { width: 100%; height: 200px; border-right: none; border-bottom: 2px solid #d4af37; }
+            .sidebar { width: 100%; height: auto; max-height: 340px; border-right: none; border-bottom: 2px solid #d4af37; }
+            .email-list { max-height: 180px; }
             .main-content { padding: 15px; }
             .form-container { padding: 20px; }
         }
@@ -199,34 +267,53 @@
 </head>
 <body>
 
-    <!-- Sidebar with Recruiter Emails -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <h2>🎯 Recruiter List</h2>
-            <p>Click "Add" to include in your send list</p>
+            <h2>🎯 JARVIS Auto-Apply</h2>
+            <p>Send your applications in one click</p>
         </div>
-        <div class="email-list" id="emailList"></div>
+
+        <div class="view-counter" id="viewCounter">
+            <span class="eye">👁</span>
+            <span>Views:</span>
+            <span class="count" id="viewCount">—</span>
+        </div>
+
+        <div class="user-plan-card">
+            <div class="plan-header">👤 MY PLAN</div>
+            <div class="plan-name" id="planName">Free Plan</div>
+            <div class="plan-details" id="planDetails">200 emails / month</div>
+            <div class="plan-usage" id="planUsage">Used: 0 / 200</div>
+            <button class="btn-change-plan" onclick="openPlanModal()">⚙️ Change My Plan</button>
+        </div>
+
+        <div class="email-list" id="emailList">
+            <div class="list-section-title">🎯 Recruiter List</div>
+            <button class="help-btn-sidebar" onclick="openHelpModal()">❓ How to Use JARVIS</button>
+        </div>
     </aside>
 
-    <!-- Main Application Form -->
     <main class="main-content">
         <div class="form-container">
             <h1>JARVIS Auto-Apply</h1>
             <p class="subtitle">Send your CV, Certificates, and Cover Letter instantly.</p>
 
+            <div class="info-banner">
+                <div class="icon">✉️</div>
+                <div class="text">
+                    <strong>How sending works:</strong> JARVIS sends your application from its verified address,
+                    but sets <strong>your email as the Reply-To</strong> — so when recruiters reply, the response
+                    goes straight to <strong>your inbox</strong>. You will never miss a reply.
+                </div>
+            </div>
+
             <div id="statusMessage" class="message-box"></div>
 
             <form id="applyForm">
-                
                 <div class="form-group">
-                    <label>Your Email Address (Gmail)</label>
+                    <label>Your Email Address (where recruiters reply)</label>
                     <input type="email" id="senderEmail" placeholder="youremail@gmail.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Your Gmail App Password</label>
-                    <input type="password" id="senderPassword" placeholder="16-character App Password" required>
-                    <div class="hint">Go to Google Account Security -> App Passwords to generate one.</div>
+                    <div class="hint">Recruiter replies will arrive here. Your plan is tied to this email.</div>
                 </div>
 
                 <div class="form-group">
@@ -243,16 +330,13 @@
                     <label>Cover Letter</label>
                     <textarea id="emailBody" required>Dear Hiring Manager,
 
-I am writing to express my strong interest in the Software Engineer position. As a highly motivated developer, I have built a vast portfolio of applications, games, and websites, all available on my GitHub profile. 
+I am writing to express my strong interest in the Software Engineer position. As a highly motivated developer, I have built a vast portfolio of applications, games, and websites, all available on my GitHub profile.
 
-One of my proudest projects is the "G Jarvis Communication Portal." I developed this platform to connect my students for educational purposes. Because online safety is paramount, I built a secure, protected environment into the application—creating a "shield" in the code that allows students to interact safely without being exposed to the wider internet.
-
-I am eager to bring my problem-solving skills and passion for secure software development to your team. Please find my CV and my certifications attached for your review.
+One of my proudest projects is the "G Jarvis Communication Portal." I developed this platform to connect my students for educational purposes. Because online safety is paramount, I built a secure, protected environment into the application.
 
 Thank you for your time and consideration.
 
 Sincerely,
-
 Gesner Deslandes
 Technology Coordinator / Software Developer
 Be Like Brit - Grand Goâve, Haiti
@@ -264,8 +348,7 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 <div class="form-group">
                     <label>Upload CV & Certificates</label>
                     <input type="file" id="cvFile" accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" multiple>
-                    <div class="hint" style="color:#f0d369;">💡 You can click this multiple times to add more files. Keep total size under 10MB to avoid Gmail blocking the email.</div>
-                    
+                    <div class="hint" style="color:#f0d369;">💡 File names are listed in the email body. EmailJS free tier cannot attach files — paste a Google Drive link in the cover letter for real attachments.</div>
                     <div id="fileList" class="file-list"></div>
                 </div>
 
@@ -274,15 +357,94 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
         </div>
     </main>
 
+    <div class="plan-modal-backdrop" id="planModalBackdrop">
+        <div class="plan-modal">
+            <h3>⚙️ Choose Your Plan</h3>
+            <p class="plan-intro">Your plan is tracked on this device. Pick the volume that matches your monthly applications.</p>
+            <div id="planOptionsList"></div>
+            <button class="plan-modal-close" onclick="closePlanModal()">Close</button>
+        </div>
+    </div>
+
+    <div class="help-modal-backdrop" id="helpModalBackdrop">
+        <div class="help-modal">
+            <h2>❓ How to Use JARVIS Auto-Apply</h2>
+            <p class="help-sub">Send your first application in under 5 minutes.</p>
+
+            <div class="help-step">
+                <div class="num">1</div>
+                <div class="content"><strong>Enter your email address.</strong> This is where recruiter replies will land. Your plan is tied to this email.</div>
+            </div>
+            <div class="help-step">
+                <div class="num">2</div>
+                <div class="content"><strong>Pick target recruiters.</strong> Use the recruiter list in the sidebar or type your own addresses into "Target Emails". Separate multiple emails with commas.</div>
+            </div>
+            <div class="help-step">
+                <div class="num">3</div>
+                <div class="content"><strong>Write your cover letter.</strong> Edit the default letter with your own story and skills.</div>
+            </div>
+            <div class="help-step">
+                <div class="num">4</div>
+                <div class="content"><strong>Upload CV & certificates.</strong> File names appear in the email body. For real attachments, paste a Google Drive link in your cover letter.</div>
+            </div>
+            <div class="help-step">
+                <div class="num">5</div>
+                <div class="content"><strong>Click "Send Applications".</strong> Recruiters will reply directly to your email. Check your inbox for responses.</div>
+            </div>
+
+            <button class="help-modal-close" onclick="closeHelpModal()">Got it — let me apply!</button>
+        </div>
+    </div>
+
     <script>
-        // 1. Populate Sidebar
+        // ============================================================
+        // YOUR EMAILJS CONFIG
+        // ============================================================
+        const EMAILJS_SERVICE_ID  = "service_y7mpb1d";
+        const EMAILJS_TEMPLATE_ID = "PASTE_YOUR_TEMPLATE_ID_HERE"; // ⚠️ REPLACE THIS
+        const SENDER_EMAIL        = "deslandes78@gmail.com";
+
+        // ============================================================
+        // VIEW COUNTER (Firebase REST)
+        // ============================================================
+        const FIREBASE_VIEWS_URL = "https://g-communication-2026-c5af2-default-rtdb.firebaseio.com/views/jarvis_autoapply.json";
+
+        async function bumpViewCounter() {
+            const countEl = document.getElementById('viewCount');
+            try {
+                const readRes = await fetch(FIREBASE_VIEWS_URL);
+                const data = await readRes.json();
+                const current = (data && typeof data.count === 'number') ? data.count : 0;
+                const next = current + 1;
+                await fetch(FIREBASE_VIEWS_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: next, lastView: Date.now() })
+                });
+                countEl.textContent = next.toLocaleString();
+            } catch (e) {
+                console.warn('View counter failed:', e);
+                try {
+                    const r = await fetch(FIREBASE_VIEWS_URL);
+                    const d = await r.json();
+                    countEl.textContent = (d && d.count) ? d.count.toLocaleString() : '—';
+                } catch (err) {
+                    countEl.textContent = '—';
+                }
+            }
+        }
+        bumpViewCounter();
+
+        // ============================================================
+        // RECRUITER LIST
+        // ============================================================
         const recruiters = [
-            "recruiting@techcorp.com", "hr@innovativedevs.io", "talent@globalsoft.com", 
-            "jobs@remoteworks.tech", "careers@futurecode.org", "hiring@cloudscale.net", 
-            "team@startupincubator.com", "hr@digitalfrontiers.com", "recruitment@aitechhub.com", 
-            "jobs@webwizards.io", "talent@nexgenapps.com", "careers@datadrive.com", 
-            "hiring@codecrafters.net", "hr@softwaredynamics.com", "recruiting@nextleveltech.org", 
-            "jobs@devsforgood.com", "team@agileminds.io", "careers@bytebuilders.com", 
+            "recruiting@techcorp.com", "hr@innovativedevs.io", "talent@globalsoft.com",
+            "jobs@remoteworks.tech", "careers@futurecode.org", "hiring@cloudscale.net",
+            "team@startupincubator.com", "hr@digitalfrontiers.com", "recruitment@aitechhub.com",
+            "jobs@webwizards.io", "talent@nexgenapps.com", "careers@datadrive.com",
+            "hiring@codecrafters.net", "hr@softwaredynamics.com", "recruiting@nextleveltech.org",
+            "jobs@devsforgood.com", "team@agileminds.io", "careers@bytebuilders.com",
             "hr@techpioneers.com", "recruiting@globaldevs.net"
         ];
 
@@ -296,24 +458,24 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 <span class="recruiter-email">${email}</span>
                 <button class="btn-add-email" onclick="addEmail('${email}')">➕ Add</button>
             `;
-            emailListDiv.appendChild(item);
+            emailListDiv.insertBefore(item, emailListDiv.lastElementChild);
         });
 
         window.addEmail = function(email) {
             let currentEmails = targetEmailsInput.value.trim();
             if (currentEmails === '') {
                 targetEmailsInput.value = email;
-            } else {
-                if (!currentEmails.includes(email)) {
-                    targetEmailsInput.value = currentEmails + ', ' + email;
-                }
+            } else if (!currentEmails.includes(email)) {
+                targetEmailsInput.value = currentEmails + ', ' + email;
             }
-        }
+        };
 
-        // 2. File Accumulation
+        // ============================================================
+        // FILE ACCUMULATION
+        // ============================================================
         const fileInput = document.getElementById('cvFile');
         const fileListDiv = document.getElementById('fileList');
-        let allFiles = []; 
+        let allFiles = [];
 
         fileInput.addEventListener('change', function(e) {
             const newFiles = Array.from(e.target.files);
@@ -322,18 +484,14 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                     allFiles.push(file);
                 }
             });
-            fileInput.value = ''; 
+            fileInput.value = '';
             renderFileList();
         });
 
         function renderFileList() {
             fileListDiv.innerHTML = '';
-            if (allFiles.length === 0) {
-                fileListDiv.style.display = 'none';
-                return;
-            }
+            if (allFiles.length === 0) { fileListDiv.style.display = 'none'; return; }
             fileListDiv.style.display = 'block';
-
             allFiles.forEach((file, index) => {
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
                 const item = document.createElement('div');
@@ -348,93 +506,147 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 fileListDiv.appendChild(item);
             });
         }
+        window.removeFile = function(index) { allFiles.splice(index, 1); renderFileList(); };
 
-        window.removeFile = function(index) {
-            allFiles.splice(index, 1);
-            renderFileList();
-        };
+        // ============================================================
+        // USER PLAN SYSTEM
+        // ============================================================
+        const PLANS = [
+            { id: 'free',     name: 'Free Plan',     price: '$0',  limit: 200,   desc: '200 emails / month' },
+            { id: 'personal', name: 'Personal Plan', price: '$9',  limit: 1000,  desc: '1,000 emails / month' },
+            { id: 'pro',      name: 'Professional',  price: '$15', limit: 5000,  desc: '5,000 emails / month' },
+            { id: 'business', name: 'Business Plan', price: '$40', limit: 20000, desc: '20,000 emails / month' }
+        ];
 
-        // 3. Bulk Sending Logic
+        function getPlanKey() {
+            const email = (document.getElementById('senderEmail').value || '').trim().toLowerCase();
+            if (email) return 'jarvis_plan_' + btoa(email).replace(/=/g, '');
+            let deviceId = localStorage.getItem('jarvis_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Math.random().toString(36).slice(2, 12);
+                localStorage.setItem('jarvis_device_id', deviceId);
+            }
+            return 'jarvis_plan_' + deviceId;
+        }
+        function loadUserPlan() {
+            const stored = localStorage.getItem(getPlanKey());
+            if (stored) return JSON.parse(stored);
+            return { planId: 'free', used: 0 };
+        }
+        function saveUserPlan(plan) { localStorage.setItem(getPlanKey(), JSON.stringify(plan)); }
+
+        function renderPlanCard() {
+            const plan = loadUserPlan();
+            const def = PLANS.find(p => p.id === plan.planId) || PLANS[0];
+            document.getElementById('planName').textContent = def.name;
+            document.getElementById('planDetails').textContent = def.desc;
+            const usageEl = document.getElementById('planUsage');
+            usageEl.textContent = 'Used: ' + plan.used + ' / ' + def.limit;
+            usageEl.style.color = plan.used >= def.limit ? '#ff4757' : '#4aff7a';
+        }
+        function incrementPlanUsage(count) {
+            const plan = loadUserPlan();
+            plan.used += (count || 1);
+            saveUserPlan(plan);
+            renderPlanCard();
+        }
+        function canSendEmails(count) {
+            const plan = loadUserPlan();
+            const def = PLANS.find(p => p.id === plan.planId) || PLANS[0];
+            return (plan.used + count) <= def.limit;
+        }
+
+        function openPlanModal() {
+            const plan = loadUserPlan();
+            const list = document.getElementById('planOptionsList');
+            list.innerHTML = '';
+            PLANS.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'plan-option' + (p.id === plan.planId ? ' active' : '');
+                div.innerHTML = `
+                    <div>
+                        <div class="plan-title">${p.name}</div>
+                        <div class="plan-desc">${p.desc}</div>
+                    </div>
+                    <div class="plan-price">${p.price}</div>
+                `;
+                div.onclick = function() { choosePlan(p.id); };
+                list.appendChild(div);
+            });
+            document.getElementById('planModalBackdrop').classList.add('show');
+        }
+        function closePlanModal() { document.getElementById('planModalBackdrop').classList.remove('show'); }
+        function choosePlan(planId) {
+            const current = loadUserPlan();
+            current.planId = planId;
+            saveUserPlan(current);
+            renderPlanCard();
+            openPlanModal();
+            setTimeout(() => closePlanModal(), 300);
+        }
+
+        function openHelpModal() { document.getElementById('helpModalBackdrop').classList.add('show'); }
+        function closeHelpModal() { document.getElementById('helpModalBackdrop').classList.remove('show'); }
+
+        document.getElementById('senderEmail').addEventListener('blur', renderPlanCard);
+        renderPlanCard();
+
+        // ============================================================
+        // SUBMIT HANDLER
+        // ============================================================
         document.getElementById('applyForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); 
+            e.preventDefault();
 
             const btn = document.getElementById('submitBtn');
             const statusBox = document.getElementById('statusMessage');
-            
+
             const senderEmail = document.getElementById('senderEmail').value.trim();
-            const senderPassword = document.getElementById('senderPassword').value.trim();
             const targetEmailsStr = document.getElementById('targetEmails').value;
             const subject = document.getElementById('emailSubject').value;
             const body = document.getElementById('emailBody').value;
 
+            if (!senderEmail) return alert("Please enter your email address.");
             if (allFiles.length === 0) return alert("Please upload your CV and Certificates.");
-            
-            const emails = targetEmailsStr.split(',').map(email => email.trim()).filter(email => email !== '');
+            const emails = targetEmailsStr.split(',').map(x => x.trim()).filter(x => x !== '');
             if (emails.length === 0) return alert("Please enter valid email addresses.");
 
-            // Check size warning
-            const totalSize = allFiles.reduce((acc, f) => acc + f.size, 0);
-            if (totalSize > 15 * 1024 * 1024) {
-                const proceed = confirm("⚠️ Warning: Your files are over 15MB. Gmail may reject this email or it will take a very long time. Do you want to proceed?");
-                if (!proceed) return;
+            if (!canSendEmails(emails.length)) {
+                return alert("⚠️ You have reached your plan limit. Please choose a higher plan from the sidebar.");
             }
 
             btn.disabled = true;
-            btn.textContent = '⏳ Uploading files to server... Please wait.';
+            btn.textContent = '⏳ Sending... (do not close this tab)';
             statusBox.className = 'message-box';
             statusBox.style.display = 'none';
 
-            // Convert files to Base64 first
-            let attachments = [];
-            for (let i = 0; i < allFiles.length; i++) {
-                const file = allFiles[i];
-                const base64Data = await readFileAsBase64(file);
-                attachments.push({
-                    name: file.name,
-                    data: base64Data
-                });
-            }
+            const fileSummary = allFiles.map((f, i) => `${i + 1}. ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`).join('\n');
 
-            btn.textContent = '🚀 Sending email to ' + emails.length + ' recruiters... (Do not close this tab)';
+            const templateParams = {
+                from_email: SENDER_EMAIL,
+                to_emails: emails.join(', '),
+                reply_to: senderEmail,
+                applicant_email: senderEmail,
+                subject: subject,
+                message: body + "\n\n--- Attachments (listed, not attached) ---\n" + fileSummary
+            };
 
-            // Send BULK email (To: emails.join(',') )
-            Email.send({
-                Host: "smtp.gmail.com",
-                Username: senderEmail,
-                Password: senderPassword,
-                To: emails.join(','), 
-                From: senderEmail,
-                Subject: subject,
-                Body: body.replace(/\n/g, "<br>"),
-                Attachments: attachments
-            }).then(
-                message => {
-                    statusBox.textContent = "✅ Success! Your CV & " + attachments.length + " certificates were sent to all " + emails.length + " recruiters.";
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function(response) {
+                    statusBox.textContent = "✅ Sent to " + emails.length + " recruiter(s). Replies will arrive at " + senderEmail + ".";
                     statusBox.className = 'message-box success';
                     btn.disabled = false;
                     btn.textContent = '🚀 Send Applications';
-                    
-                    // Clear files after send
+                    incrementPlanUsage(emails.length);
                     allFiles = [];
                     renderFileList();
-                }
-            ).catch(err => {
-                statusBox.textContent = "❌ Error: " + err + " (Check your App Password or Total File Size)";
-                statusBox.className = 'message-box error';
-                btn.disabled = false;
-                btn.textContent = '🚀 Send Applications';
-            });
+                })
+                .catch(function(err) {
+                    statusBox.textContent = "❌ Failed: " + (err.text || JSON.stringify(err));
+                    statusBox.className = 'message-box error';
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Send Applications';
+                });
         });
-
-        // Helper function to read files
-        function readFileAsBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
     </script>
 </body>
 </html>
