@@ -223,22 +223,22 @@
 
         .hint { font-size: 12px; color: #64748b; margin-top: 4px; }
 
-        .plan-modal-backdrop, .help-modal-backdrop, .bulk-modal-backdrop {
+        .plan-modal-backdrop, .help-modal-backdrop, .bulk-modal-backdrop, .upgrade-modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.8);
             display: none; align-items: center; justify-content: center;
             z-index: 9999; padding: 20px;
         }
-        .plan-modal-backdrop.show, .help-modal-backdrop.show, .bulk-modal-backdrop.show { display: flex; }
+        .plan-modal-backdrop.show, .help-modal-backdrop.show, .bulk-modal-backdrop.show, .upgrade-modal-backdrop.show { display: flex; }
 
-        .plan-modal, .help-modal, .bulk-modal {
+        .plan-modal, .help-modal, .bulk-modal, .upgrade-modal {
             background: #0f172a; border: 2px solid #d4af37; border-radius: 12px;
             max-width: 640px; width: 100%; padding: 26px; color: #fff;
             max-height: 90vh; overflow-y: auto;
         }
         .plan-modal { max-width: 440px; }
-        .plan-modal h3, .help-modal h2, .bulk-modal h3 { color: #d4af37; margin-bottom: 8px; font-size: 20px; }
-        .help-modal h2 { font-size: 22px; }
-        .plan-modal p.plan-intro, .help-modal .help-sub, .bulk-modal p.bulk-intro {
+        .plan-modal h3, .help-modal h2, .bulk-modal h3, .upgrade-modal h2 { color: #d4af37; margin-bottom: 8px; font-size: 20px; }
+        .help-modal h2, .upgrade-modal h2 { font-size: 22px; }
+        .plan-modal p.plan-intro, .help-modal .help-sub, .bulk-modal p.bulk-intro, .upgrade-modal .upgrade-sub {
             font-size: 12px; color: #94a3b8; margin-bottom: 14px; line-height: 1.5;
         }
         .bulk-modal textarea {
@@ -271,7 +271,7 @@
         .help-step .content { flex: 1; font-size: 13px; line-height: 1.6; color: #e2e8f0; }
         .help-step .content strong { color: #d4af37; }
 
-        .plan-modal-close, .help-modal-close, .bulk-modal-close {
+        .plan-modal-close, .help-modal-close, .bulk-modal-close, .upgrade-modal-close {
             width: 100%; padding: 13px; margin-top: 10px; border: none;
             border-radius: 8px; background: #334155; color: #fff;
             font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif;
@@ -279,6 +279,14 @@
         .help-modal-close, .bulk-modal-save {
             background: linear-gradient(135deg, #f0d369, #d4af37); color: #0b2a4a;
         }
+        .upgrade-modal .btn-upgrade-link {
+            display: block; width: 100%; padding: 14px; margin-bottom: 10px;
+            background: linear-gradient(135deg, #0d7a8c, #0a6474); color: #fff;
+            border: none; border-radius: 8px; font-weight: 700;
+            text-align: center; text-decoration: none; font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .upgrade-modal .btn-upgrade-link:hover { opacity: 0.9; }
         .bulk-modal-actions {
             display: flex; gap: 10px; margin-top: 10px;
         }
@@ -313,6 +321,7 @@
             <div class="plan-details" id="planDetails">200 emails / month</div>
             <div class="plan-usage" id="planUsage">Used: 0 / 200</div>
             <button class="btn-change-plan" onclick="openPlanModal()">⚙️ Change My Plan</button>
+            <button class="btn-change-plan" onclick="openUpgradeModal()" style="background:linear-gradient(135deg,#0d7a8c,#0a6474);color:#fff;margin-top:6px;font-size:11px;">📎 Upgrade for File Attachments</button>
         </div>
 
         <div class="recruiter-header">
@@ -385,7 +394,7 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
                 <div class="form-group">
                     <label>Upload CV & Certificates</label>
                     <input type="file" id="cvFile" accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" multiple>
-                    <div class="hint" style="color:#f0d369;">💡 File names are listed in the email body. EmailJS free tier cannot attach files — paste a Google Drive link in the cover letter for real attachments.</div>
+                    <div class="hint" style="color:#f0d369;">💡 File names are listed in the email body. EmailJS free tier cannot attach files — <a href="#" onclick="openUpgradeModal();return false;" style="color:#0d7a8c;font-weight:700;">click here to see paid options</a> or paste a Google Drive link in your cover letter.</div>
                     <div id="fileList" class="file-list"></div>
                 </div>
 
@@ -400,6 +409,25 @@ GitHub Portfolio: https://github.com/deslandes1</textarea>
             <p class="plan-intro">Your plan is tracked on this device. Pick the volume that matches your monthly applications.</p>
             <div id="planOptionsList"></div>
             <button class="plan-modal-close" onclick="closePlanModal()">Close</button>
+        </div>
+    </div>
+
+    <div class="upgrade-modal-backdrop" id="upgradeModalBackdrop">
+        <div class="upgrade-modal">
+            <h2>📎 File Attachments Need EmailJS Paid Plan</h2>
+            <p class="upgrade-sub">JARVIS uses EmailJS to send your applications. EmailJS Free does not support file attachments. To send your CV and certificates as actual files, you need an EmailJS plan that supports attachments.</p>
+            <div style="background:#1e293b;padding:14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.8;color:#e2e8f0;">
+                <strong style="color:#d4af37;">EmailJS Attachment Limits:</strong><br>
+                🆓 Free: <strong style="color:#ff4757;">No attachments</strong><br>
+                📎 Personal ($9/mo): up to <strong>500 KB</strong><br>
+                📎 Professional ($15/mo): up to <strong>2 MB</strong><br>
+                📎 Business ($40/mo): up to <strong>30 MB</strong>
+            </div>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:16px;line-height:1.6;">
+                <strong>Note:</strong> You cannot buy the EmailJS plan from inside this app. You must purchase it directly from EmailJS. Click below to visit their pricing page.
+            </p>
+            <a class="btn-upgrade-link" href="https://www.emailjs.com/pricing/" target="_blank" rel="noopener">🔗 Open EmailJS Pricing Page</a>
+            <button class="upgrade-modal-close" onclick="closeUpgradeModal()">Close</button>
         </div>
     </div>
 
@@ -437,7 +465,7 @@ recruiter3@company.com"></textarea>
             </div>
             <div class="help-step">
                 <div class="num">4</div>
-                <div class="content"><strong>Upload CV & certificates.</strong> File names appear in the email body. For real attachments, paste a Google Drive link in your cover letter.</div>
+                <div class="content"><strong>Upload CV & certificates.</strong> File names appear in the email body. For real attachments, you need an EmailJS paid plan or paste a Google Drive link in your cover letter.</div>
             </div>
             <div class="help-step">
                 <div class="num">5</div>
@@ -605,7 +633,6 @@ recruiter3@company.com"></textarea>
             currentRecruiters.push('');
             editingIndex = currentRecruiters.length - 1;
             renderRecruiters();
-            // Don't save the empty slot yet — wait for user to type
         };
 
         window.removeRecruiter = async function(i) {
@@ -795,6 +822,15 @@ recruiter3@company.com"></textarea>
             openPlanModal();
             setTimeout(() => closePlanModal(), 300);
         }
+
+        // Upgrade modal (EmailJS paid plan info)
+        function openUpgradeModal() {
+            document.getElementById('upgradeModalBackdrop').classList.add('show');
+        }
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModalBackdrop').classList.remove('show');
+        }
+
         function openHelpModal() { document.getElementById('helpModalBackdrop').classList.add('show'); }
         function closeHelpModal() { document.getElementById('helpModalBackdrop').classList.remove('show'); }
         document.getElementById('senderEmail').addEventListener('blur', renderPlanCard);
